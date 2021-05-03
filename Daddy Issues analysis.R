@@ -14,6 +14,9 @@ library(cAIC4)
 library(r2glmm) 
 library(MuMIn)
 library(gsheet)
+library(boot)
+library(lmboot)
+library(boot)
 
 daddy_issues <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1jG_Kxbxgpil1OvVI1tU6KPdQt48d_bHH26ILacyOSVg/edit#gid=0')
 View(daddy_issues)
@@ -235,7 +238,7 @@ describe(daddy_issues[,AMORE_p$items])
 #How many cases are missing per variable
 #How many observations each participant is missing 
 #Added missing count ot each participant with new variable nmiss (6 people are missing 5 data, 25 are missing 6, etc)
-
+fdaddy_issues <- daddy_issues
 sapply(daddy_issues, function(X) sum(is.na(X)))
 
 apply(daddy_issues, 1, function(X) sum(is.na(X)))
@@ -433,6 +436,58 @@ dim(fdaddy_issues)
 
 #Does this still leave us with a full-powered U.S. and international sample? Yes (:
 table(fdaddy_issues$country)
+
+#Create vectors for each variable 
+fdaddy_issues$RCSE <- fdaddy_issues$RCSE1 + fdaddy_issues$RCSE2 + fdaddy_issues$RCSE3 + fdaddy_issues$RCSE4 + fdaddy_issues$RCSE5 + fdaddy_issues$RCSE6 + fdaddy_issues$RCSE7 + fdaddy_issues$RCSE8 + fdaddy_issues$RCSE9 + fdaddy_issues$RCSE10
+fdaddy_issues$FIS_E <- fdaddy_issues$FIS_e1 + fdaddy_issues$FIS_e2 + fdaddy_issues$FIS_e3 + fdaddy_issues$FIS_e4 + fdaddy_issues$FIS_e5 + fdaddy_issues$FIS_e6 + fdaddy_issues$FIS_e8 
+fdaddy_issues$FIS_I <- fdaddy_issues$FIS_i1 + fdaddy_issues$FIS_i2 + fdaddy_issues$FIS_i3 + fdaddy_issues$FIS_i5 + fdaddy_issues$FIS_i6 + fdaddy_issues$FIS_i7 
+fdaddy_issues$FIS_M <- fdaddy_issues$FIS_m2 + fdaddy_issues$FIS_m3 + fdaddy_issues$FIS_m4
+fdaddy_issues$MIS_E <- fdaddy_issues$MIS_e1 + fdaddy_issues$MIS_e2 + fdaddy_issues$MIS_e3 + fdaddy_issues$MIS_e4 + fdaddy_issues$MIS_e5 + fdaddy_issues$MIS_e6 + fdaddy_issues$MIS_e8
+fdaddy_issues$MIS_I <- fdaddy_issues$MIS_i1 + fdaddy_issues$MIS_i2 + fdaddy_issues$MIS_i3 + fdaddy_issues$MIS_i5 + fdaddy_issues$MIS_i6 + fdaddy_issues$MIS_i7
+fdaddy_issues$MIS_M <- fdaddy_issues$MIS_m1 + fdaddy_issues$MIS_m2 + fdaddy_issues$MIS_m3
+fdaddy_issues$AMORE_E <- fdaddy_issues$AMORE_e1 + fdaddy_issues$AMORE_e2 + fdaddy_issues$AMORE_e3 + fdaddy_issues$AMORE_e4 + fdaddy_issues$AMORE_e5 + fdaddy_issues$AMORE_e6 + fdaddy_issues$AMORE_e7 
+fdaddy_issues$ AMORE_P <- fdaddy_issues$AMORE_p1 + fdaddy_issues$AMORE_p2 + fdaddy_issues$AMORE_p3 + fdaddy_issues$AMORE_p4 + fdaddy_issues$AMORE_p5 + fdaddy_issues$AMORE_p6 + fdaddy_issues$AMORE_p7 + fdaddy_issues$AMORE_p8 + fdaddy_issues$AMORE_p9 + fdaddy_issues$AMORE_p10
+
+fdaddy_issues$FIS <- fdaddy_issues$FIS_E + fdaddy_issues$FIS_I + fdaddy_issues$FIS_M
+fdaddy_issues$MIS <- fdaddy_issues$MIS_E + fdaddy_issues$MIS_I + fdaddy_issues$MIS_M
+
+
+
+# Created the first model for the multiple regression containing the DV of RCSE and predictor variables FIS & MIS. 
+# Checked RCSE model for influential outliers using Cook's distance and the slice function to view the flagged values.
+# Decided to keep all flagged values, as the data was realistic and want model to be reflective of the real world.
+# Checked RCSE model to see if the assumptions of linear regression held true.
+# Decided that all assumptions of  linear regression held true.
+
+RCSE_model = lm(RCSE ~ FIS, data = fdaddy_issues)
+
+#Cook's distance
+RCSE_model %>%
+  plot(which = 4)
+fdaddy_issues %>%
+  slice(c(52, 305, 505))
+
+#Normality 
+#Not violated
+RCSE_model %>%
+  plot(which = 2)
+
+residuals_RCSE = enframe(residuals(RCSE_model))
+
+residuals_RCSE %>%
+  ggplot() +
+  aes(x = value) +
+  geom_histogram()
+
+describe(residuals(RCSE_model))
+
+#Linearity
+#Not violating assumptions 
+RCSE_model %>%
+  residualPlots()
+
+
+
 
 
 
