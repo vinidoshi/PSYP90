@@ -17,6 +17,13 @@ library(gsheet)
 library(boot)
 library(lmboot)
 library(boot)
+library(jtools)
+library(huxtable)
+library(caTools)
+library(corrplot)
+source("http://www.sthda.com/upload/rquery_cormat.r")
+library(Hmisc)
+
 
 daddy_issues <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1jG_Kxbxgpil1OvVI1tU6KPdQt48d_bHH26ILacyOSVg/edit#gid=0')
 View(daddy_issues)
@@ -127,6 +134,9 @@ daddy_issues$RCSE10 <- RCSE_scores[daddy_issues$RCSE10]
 daddy_issues$RCSE6 <- RCSE_scores.reversed[daddy_issues$RCSE6]
 daddy_issues$RCSE7 <- RCSE_scores.reversed[daddy_issues$RCSE7]
 
+is.factor(daddy_issues$RCSE6)
+is.list(daddy_issues$RCSE6)
+is.vector(daddy_issues$RCSE6)
 
 #Re-coding values 
   #FIS
@@ -138,20 +148,18 @@ daddy_issues$FIS_e3 <- FIS_scores[daddy_issues$FIS_e3]
 daddy_issues$FIS_e4 <- FIS_scores[daddy_issues$FIS_e4]
 daddy_issues$FIS_e5 <- FIS_scores[daddy_issues$FIS_e5]
 daddy_issues$FIS_e6 <- FIS_scores[daddy_issues$FIS_e6]
-daddy_issues$FIS_e7 <- FIS_scores[daddy_issues$FIS_e7]
 daddy_issues$FIS_e8 <- FIS_scores[daddy_issues$FIS_e8]
 daddy_issues$FIS_i1 <- FIS_scores[daddy_issues$FIS_i1]
 daddy_issues$FIS_i2 <- FIS_scores[daddy_issues$FIS_i2]
 daddy_issues$FIS_i3 <- FIS_scores[daddy_issues$FIS_i3]
-daddy_issues$FIS_i4 <- FIS_scores[daddy_issues$FIS_i4]
 daddy_issues$FIS_i5 <- FIS_scores[daddy_issues$FIS_i5]
 daddy_issues$FIS_i6 <- FIS_scores[daddy_issues$FIS_i6]
 daddy_issues$FIS_i7 <- FIS_scores[daddy_issues$FIS_i7]
-daddy_issues$FIS_i8 <- FIS_scores[daddy_issues$FIS_i8]
-daddy_issues$FIS_m1 <- FIS_scores[daddy_issues$FIS_m1]
 daddy_issues$FIS_m2 <- FIS_scores[daddy_issues$FIS_m2]
 daddy_issues$FIS_m3 <- FIS_scores[daddy_issues$FIS_m3]
 daddy_issues$FIS_m4 <- FIS_scores[daddy_issues$FIS_m4]
+
+is.vector(daddy_issues$FIS_e1)
 
   #MIS
 MIS_scores <- c("Never involved" = 1, "Hardly involved" = 2, "Can't say" = 3, "Frequently involved" = 4, "Always involved" = 5)
@@ -162,18 +170,18 @@ daddy_issues$MIS_e3 <- MIS_scores[daddy_issues$MIS_e3]
 daddy_issues$MIS_e4 <- MIS_scores[daddy_issues$MIS_e4]
 daddy_issues$MIS_e5 <- MIS_scores[daddy_issues$MIS_e5]
 daddy_issues$MIS_e6 <- MIS_scores[daddy_issues$MIS_e6]
-daddy_issues$MIS_e7 <- MIS_scores[daddy_issues$MIS_e7]
 daddy_issues$MIS_e8 <- MIS_scores[daddy_issues$MIS_e8]
 daddy_issues$MIS_i1 <- MIS_scores[daddy_issues$MIS_i1]
 daddy_issues$MIS_i2 <- MIS_scores[daddy_issues$MIS_i2]
 daddy_issues$MIS_i3 <- MIS_scores[daddy_issues$MIS_i3]
-daddy_issues$MIS_i4 <- MIS_scores[daddy_issues$MIS_i4]
 daddy_issues$MIS_i5 <- MIS_scores[daddy_issues$MIS_i5]
 daddy_issues$MIS_i6 <- MIS_scores[daddy_issues$MIS_i6]
 daddy_issues$MIS_i7 <- MIS_scores[daddy_issues$MIS_i7]
 daddy_issues$MIS_m1 <- MIS_scores[daddy_issues$MIS_m1]
 daddy_issues$MIS_m2 <- MIS_scores[daddy_issues$MIS_m2]
 daddy_issues$MIS_m3 <- MIS_scores[daddy_issues$MIS_m3]
+
+is.vector(daddy_issues$MIS_e1)
 
   #AMORE - E
 AMORE_scores <- c("Not at all true" = 1, "Somewhat untrue" = 2, "Moderately true" = 3, "Somewhat true" = 4, "Completely true" = 5)
@@ -198,6 +206,9 @@ daddy_issues$AMORE_p8 <- AMORE_scores[daddy_issues$AMORE_p8]
 daddy_issues$AMORE_p9 <- AMORE_scores[daddy_issues$AMORE_p9]
 daddy_issues$AMORE_p10 <- AMORE_scores[daddy_issues$AMORE_p10]
 
+is.vector(daddy_issues$AMORE_e1)
+is.vector(daddy_issues$AMORE_p1)
+
 #Examine data set for any outliers 
 #RCSE has normal range, skew, and kurtosis. no outliers
 #FIS has normal range, skew, and kurtosis. no outliers
@@ -205,59 +216,41 @@ daddy_issues$AMORE_p10 <- AMORE_scores[daddy_issues$AMORE_p10]
 #AMORE_e has normal range, skew, and kurtosis. no outliers
 #AMORE_p has normal range, skew, and kurtosis. no outliers
 
-RCSE <- list()
-RCSE$items <- c("RCSE1", "RCSE2", 
-                "RCSE3", "RCSE4", "RCSE5", "RCSE6", "RCSE7", "RCSE8", "RCSE9", 
-                "RCSE10")
-describe(daddy_issues[,RCSE$items])
-
-FIS <- list()
-FIS$items <- c("FIS_e1", "FIS_e2", "FIS_e3", "FIS_e4", "FIS_e5", "FIS_e6", 
-               "FIS_e7", "FIS_e8", "FIS_i1", "FIS_i2", "FIS_i3", "FIS_i4", "FIS_i5", 
-               "FIS_i6", "FIS_i7", "FIS_i8", "FIS_m1", "FIS_m2", "FIS_m3", "FIS_m4")
-describe(daddy_issues[,FIS$items])
-
-MIS <- list()
-MIS$items <- c("MIS_e1", "MIS_e2", "MIS_e3", "MIS_e4", "MIS_e5", "MIS_e6", "MIS_e7", 
-               "MIS_e8", "MIS_i1", "MIS_i2", "MIS_i3", "MIS_i4", "MIS_i5", "MIS_i6", 
-               "MIS_i7", "MIS_m1", "MIS_m2", "MIS_m3")
-describe(daddy_issues[,MIS$items])
-
-AMORE_e <- list()
-AMORE_e$items <- c("AMORE_e1", "AMORE_e2", 
-                   "AMORE_e3", "AMORE_e4", "AMORE_e5", "AMORE_e6", "AMORE_e7")
-describe(daddy_issues[,AMORE_e$items])
-
-AMORE_p <- list()
-AMORE_p$items <- c("AMORE_p1", 
-                   "AMORE_p2", "AMORE_p3", "AMORE_p4", "AMORE_p5", "AMORE_p6", "AMORE_p7", 
-                   "AMORE_p8", "AMORE_p9", "AMORE_p10")
-describe(daddy_issues[,AMORE_p$items])
-
 #Dealing with missing data 
 #How many cases are missing per variable
 #How many observations each participant is missing 
 #Added missing count ot each participant with new variable nmiss (6 people are missing 5 data, 25 are missing 6, etc)
 fdaddy_issues <- daddy_issues
-sapply(daddy_issues, function(X) sum(is.na(X)))
-
-apply(daddy_issues, 1, function(X) sum(is.na(X)))
-daddy_issues$nmiss <- apply(daddy_issues, 1, function(X) sum(is.na(X)))
-table(daddy_issues$nmiss)
-
-#Want to keep all participants who filled out RCSE and FIS/MIS = 48 out of 76 observations. will remove anybody who has 28 or more observations missing??
-#This would mean dropping 194 and keeping 643? Or remove more?
-daddy_issues$retain <- daddy_issues$nmiss < 28
-table(daddy_issues$retain)
-
-#Create new data set with this number 
-#Instead of having 837 rows we have 643
-#Can see how many observations per variable are still missing. 0 in RCSE, FIS, & MIS
-fdaddy_issues <- daddy_issues[ daddy_issues$retain, ]
 View(fdaddy_issues)
 sapply(fdaddy_issues, function(X) sum(is.na(X)))
-dim(daddy_issues)
+
+apply(fdaddy_issues, 1, function(X) sum(is.na(X)))
+fdaddy_issues$nmiss <- apply(fdaddy_issues, 1, function(X) sum(is.na(X)))
+table(fdaddy_issues$nmiss)
+
+#What will sample look like if we remove the rest of the NA's?
+#Would mean removing anybody who has 17 or more observations missing
+#This would mean dropping 50 and keeping 586 
+sapply(fdaddy_issues, function(X) sum(is.na(X)))
+fdaddy_issues$nmiss <- apply(fdaddy_issues, 1, function(X) sum(is.na(X)))
+
+fdaddy_issues$retain <- fdaddy_issues$nmiss < 13
+table(fdaddy_issues$retain) 
+
+#Create new data set with this number 
+#Instead of having 643 rows we have 586
+#Can see how many observations per variable are still missing. 0 in RCSE, FIS, & MIS,
+#but still 2 in AMORE_p10, p9, p8, and 1 in p7, 6 and 5
+#Will removed these NA's by case 
+#This leaves us with 584 rows
+fdaddy_issues <- fdaddy_issues[ fdaddy_issues$retain, ]
+View(fdaddy_issues)
+sapply(fdaddy_issues, function(X) sum(is.na(X)))
 dim(fdaddy_issues)
+
+#Does this still leave us with a full-powered U.S. and international sample? Yes (:
+table(fdaddy_issues$country)
+View(fdaddy_issues)
 
 #Visualize data 
 fdaddy_issues %>%
@@ -392,6 +385,7 @@ fdaddy_issues$country[fdaddy_issues$country == "India"] <- "Asia"
 
   #Relationship
 table(fdaddy_issues$rel)
+table(fdaddy_issues$other.rel)
 
 #Remove any cases where people did not identify as women
 #Removed NA cases - rows 1, 2, & 445
@@ -410,33 +404,6 @@ View(fdaddy_issues)
 fdaddy_issues <- fdaddy_issues[-c(557),]
 View(fdaddy_issues)
 
-#What will sample look like if we remove the rest of the NA's?
-#Would mean removing anybody who has 17 or more observations missing
-#This would mean dropping 50 and keeping 586 
-sapply(fdaddy_issues, function(X) sum(is.na(X)))
-fdaddy_issues$nmiss <- apply(fdaddy_issues, 1, function(X) sum(is.na(X)))
-
-fdaddy_issues$retain <- fdaddy_issues$nmiss < 17
-table(fdaddy_issues$retain) 
-
-#Create new data set with this number 
-#Instead of having 643 rows we have 586
-#Can see how many observations per variable are still missing. 0 in RCSE, FIS, & MIS,
-  #but still 2 in AMORE_p10, p9, p8, and 1 in p7, 6 and 5
-#Will removed these NA's by case 
-#This leaves us with 584 rows
-fdaddy_issues <- fdaddy_issues[ fdaddy_issues$retain, ]
-View(fdaddy_issues)
-sapply(fdaddy_issues, function(X) sum(is.na(X)))
-dim(fdaddy_issues)
-
-fdaddy_issues <- fdaddy_issues[-c(563, 569),]
-sapply(fdaddy_issues, function(X) sum(is.na(X)))
-dim(fdaddy_issues)
-
-#Does this still leave us with a full-powered U.S. and international sample? Yes (:
-table(fdaddy_issues$country)
-
 #Create vectors for each variable 
 fdaddy_issues$RCSE <- fdaddy_issues$RCSE1 + fdaddy_issues$RCSE2 + fdaddy_issues$RCSE3 + fdaddy_issues$RCSE4 + fdaddy_issues$RCSE5 + fdaddy_issues$RCSE6 + fdaddy_issues$RCSE7 + fdaddy_issues$RCSE8 + fdaddy_issues$RCSE9 + fdaddy_issues$RCSE10
 fdaddy_issues$FIS_E <- fdaddy_issues$FIS_e1 + fdaddy_issues$FIS_e2 + fdaddy_issues$FIS_e3 + fdaddy_issues$FIS_e4 + fdaddy_issues$FIS_e5 + fdaddy_issues$FIS_e6 + fdaddy_issues$FIS_e8 
@@ -448,8 +415,15 @@ fdaddy_issues$MIS_M <- fdaddy_issues$MIS_m1 + fdaddy_issues$MIS_m2 + fdaddy_issu
 fdaddy_issues$AMORE_E <- fdaddy_issues$AMORE_e1 + fdaddy_issues$AMORE_e2 + fdaddy_issues$AMORE_e3 + fdaddy_issues$AMORE_e4 + fdaddy_issues$AMORE_e5 + fdaddy_issues$AMORE_e6 + fdaddy_issues$AMORE_e7 
 fdaddy_issues$ AMORE_P <- fdaddy_issues$AMORE_p1 + fdaddy_issues$AMORE_p2 + fdaddy_issues$AMORE_p3 + fdaddy_issues$AMORE_p4 + fdaddy_issues$AMORE_p5 + fdaddy_issues$AMORE_p6 + fdaddy_issues$AMORE_p7 + fdaddy_issues$AMORE_p8 + fdaddy_issues$AMORE_p9 + fdaddy_issues$AMORE_p10
 
-fdaddy_issues$FIS <- fdaddy_issues$FIS_E + fdaddy_issues$FIS_I + fdaddy_issues$FIS_M
-fdaddy_issues$MIS <- fdaddy_issues$MIS_E + fdaddy_issues$MIS_I + fdaddy_issues$MIS_M
+fdaddy_issues$FIS.tot <- fdaddy_issues$FIS_E + fdaddy_issues$FIS_I + fdaddy_issues$FIS_M
+fdaddy_issues$MIS.tot <- fdaddy_issues$MIS_E + fdaddy_issues$MIS_I + fdaddy_issues$MIS_M
+
+View(fdaddy_issues)
+is.list(FIS)
+is.list(RCSE)
+is.list(AMORE_E)
+is.list(FIS.tot)
+
 
 
 
@@ -464,8 +438,6 @@ RCSE_model = lm(RCSE ~ FIS, data = fdaddy_issues)
 #Cook's distance
 RCSE_model %>%
   plot(which = 4)
-fdaddy_issues %>%
-  slice(c(52, 305, 505))
 
 #Normality 
 #Not violated
@@ -486,8 +458,190 @@ describe(residuals(RCSE_model))
 RCSE_model %>%
   residualPlots()
 
+#Homoscedasticity
+#Not violated
+RCSE_model %>%
+  plot(which = 3)
 
+RCSE_model %>%
+  ncvTest()
+RCSE_model %>%
+  bptest()
 
+summary(RCSE_model)
+sum(abs(fdaddy_issues$RCSE - predict(RCSE_model))^2)
 
+FIS_df <- as.tibble(RCSE)
 
+predictions = predict(RCSE_model, newdata = FIS_df)
 
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = FIS, y = RCSE) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+
+#AMORE E model
+AMORE.e_model = lm(AMORE_E ~ FIS, data = fdaddy_issues)
+
+#Cook's distance
+AMORE.e_model %>%
+  plot(which = 4)
+
+#Normality 
+#Not violated
+AMORE.e_model %>%
+  plot(which = 2)
+
+residuals_AMORE.e = enframe(residuals(RCSE_model))
+
+residuals_AMORE.e %>%
+  ggplot() +
+  aes(x = value) +
+  geom_histogram()
+
+describe(residuals(AMORE.e_model))
+
+#Linearity
+#Not violating assumptions 
+AMORE.e_model %>%
+  residualPlots()
+
+#Homoscedasticity
+#Not violated
+AMORE.e_model %>%
+  plot(which = 3)
+
+AMORE.e_model %>%
+  ncvTest()
+AMORE.e_model %>%
+  bptest()
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = FIS, y = AMORE_E) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+
+#AMORE P model
+AMORE.p_model = lm(AMORE_P ~ FIS, data = fdaddy_issues)
+
+#Cook's distance
+AMORE.p_model %>%
+  plot(which = 4)
+fdaddy_issues %>%
+  slice(c(52, 437, 509))
+
+#Normality 
+#Not violated
+AMORE.p_model %>%
+  plot(which = 2)
+
+residuals_AMORE.p = enframe(residuals(RCSE_model))
+
+residuals_AMORE.p %>%
+  ggplot() +
+  aes(x = value) +
+  geom_histogram()
+
+describe(residuals(AMORE.p_model))
+
+boxplot(residuals(AMORE.p_model))
+
+shapiro.test(residuals(AMORE.p_model))
+
+#Linearity
+#Not violating assumptions 
+AMORE.e_model %>%
+  residualPlots()
+
+#Homoscedasticity
+#Not violated
+AMORE.e_model %>%
+  plot(which = 3)
+
+AMORE.e_model %>%
+  ncvTest()
+AMORE.e_model %>%
+  bptest()
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = FIS, y = AMORE_P) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+
+####### multivariate regression
+RCSE_mult.model <- lm(RCSE ~ FIS, data = fdaddy_issues)
+export_summs(RCSE_mult.model)
+
+RCSE_mult.model <- lm(FIS ~ RCSE + AMORE_E + AMORE_P, data = fdaddy_issues)
+export_summs(RCSE_mult.model)
+
+###linear hypothesis test?
+linearHypothesis(RCSE_mult.model, c())
+
+####linear regression 
+#Check for errors
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = RCSE) +
+  geom_histogram()
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = AMORE_E) +
+  geom_histogram()
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(x = AMORE_P) +
+  geom_histogram()
+
+#Visualize relationships
+fdaddy_issues %>%
+  ggplot() +
+  aes(y = RCSE, x = FIS.tot) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(y = AMORE_E, x = FIS.tot) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+
+fdaddy_issues %>%
+  ggplot() +
+  aes(y = AMORE_P, x = FIS.tot) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F)  
+
+RCSE.mod <- lm(RCSE ~ FIS.tot, data = fdaddy_issues)
+RCSE.mod
+
+#Create vector of RCSE values 
+#Create df of these values
+RCSE.vec <- c(26, 49, 20, 35, 19)
+RCSE.df = as.tibble(RCSE.vec)
+
+#Create predictions
+predictions = predict(RCSE.mod, newdata = RCSE.df)
+
+is.list(fdaddy_issues$RCSE)
+is.list(fdaddy_issues$AMORE_E)
+is.list(fdaddy_issues$AMORE_P)
+is.list(fdaddy_issues$FIS.tot)
+is.list(fdaddy_issues$MIS.tot)
+
+variables.df <- data.frame(fdaddy_issues$RCSE, fdaddy_issues$AMORE_E, fdaddy_issues$AMORE_P, fdaddy_issues$FIS.tot, fdaddy_issues$MIS.tot)
+variables.df
+
+variables.cor = cor(variables.df)
+variables.cor
+
+variables.rcorr = rcorr(as.matrix(variables.df))
+variables.rcorr
+
+corrplot(variables.cor)
